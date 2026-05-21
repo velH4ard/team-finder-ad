@@ -1,3 +1,4 @@
+"""Models for the projects application."""
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -5,6 +6,7 @@ User = get_user_model()
 
 
 class Project(models.Model):
+    """Represents a project on the platform."""
     STATUS_CHOICES = [
         ('open', 'Открыт'),
         ('closed', 'Закрыт'),
@@ -34,15 +36,18 @@ class Project(models.Model):
     )
 
     class Meta:
+        """Meta options for Project model."""
         ordering = ('-pub_date',)
         verbose_name = 'Проект'
         verbose_name_plural = 'Проекты'
 
     def __str__(self):
+        """Returns the project title."""
         return self.title
 
 
 class Favorite(models.Model):
+    """Represents a favorite project for a user."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -57,6 +62,7 @@ class Favorite(models.Model):
     )
 
     class Meta:
+        """Meta options for Favorite model."""
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'project'],
