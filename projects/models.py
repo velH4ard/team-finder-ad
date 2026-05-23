@@ -1,28 +1,26 @@
 """Models for the projects application."""
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
+
+from team_finder.constants import STATUS_CHOICES, STATUS_OPEN, TITLE_MAX_LENGTH, STATUS_MAX_LENGTH
 
 User = get_user_model()
 
 
 class Project(models.Model):
     """Represents a project on the platform."""
-    STATUS_CHOICES = [
-        ('open', 'Открыт'),
-        ('closed', 'Закрыт'),
-    ]
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='projects',
         verbose_name='Автор'
     )
-    title = models.CharField(max_length=200, verbose_name='Название')
+    title = models.CharField(max_length=TITLE_MAX_LENGTH, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')
     status = models.CharField(
-        max_length=10,
+        max_length=STATUS_MAX_LENGTH,
         choices=STATUS_CHOICES,
-        default='open',
+        default=STATUS_OPEN,
         verbose_name='Статус'
     )
     pub_date = models.DateTimeField(
@@ -71,3 +69,7 @@ class Favorite(models.Model):
         ]
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
+
+    def __str__(self):
+        """Returns string representation of favorite."""
+        return f'{self.user.username} - {self.project.title}'
