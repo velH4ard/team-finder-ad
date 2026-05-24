@@ -4,8 +4,8 @@
 STATUS_OPEN = 'open'
 STATUS_CLOSED = 'closed'
 STATUS_CHOICES = [
-    (STATUS_OPEN, 'Open'),
-    (STATUS_CLOSED, 'Closed'),
+    (STATUS_OPEN, 'Открыт'),
+    (STATUS_CLOSED, 'Закрыт'),
 ]
 
 # Field lengths
