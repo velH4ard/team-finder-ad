@@ -1,4 +1,6 @@
+"""Permissions for the projects application."""
 from rest_framework import permissions
+
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     """Permission class to allow only authors to edit objects."""
