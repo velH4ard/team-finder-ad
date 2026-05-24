@@ -1,6 +1,7 @@
 """Models for the projects application."""
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.urls import reverse
 
 from team_finder.constants import STATUS_CHOICES, STATUS_OPEN, TITLE_MAX_LENGTH, STATUS_MAX_LENGTH
 
@@ -9,6 +10,7 @@ User = get_user_model()
 
 class Project(models.Model):
     """Represents a project on the platform."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -43,6 +45,10 @@ class Project(models.Model):
         """Returns the project title."""
         return self.title
 
+    def get_absolute_url(self):
+        """Returns the canonical URL for the project."""
+        return reverse('project-detail', kwargs={'pk': self.pk})
+
 
 class Favorite(models.Model):
     """Represents a favorite project for a user."""
@@ -55,7 +61,7 @@ class Favorite(models.Model):
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
-        related_name='favorited_by',
+        related_name='favorites',
         verbose_name='Проект'
     )
 

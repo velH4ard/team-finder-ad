@@ -4,11 +4,11 @@
 STATUS_OPEN = 'open'
 STATUS_CLOSED = 'closed'
 STATUS_CHOICES = [
-    (STATUS_OPEN, 'Открыт'),
-    (STATUS_CLOSED, 'Закрыт'),
+    (STATUS_OPEN, 'Open'),
+    (STATUS_CLOSED, 'Closed'),
 ]
 
 # Field lengths
 TITLE_MAX_LENGTH = 200
-STATUS_MAX_LENGTH = 10
-PHONE_MAX_LENGTH = 15
+STATUS_MAX_LENGTH = 6
+PHONE_MAX_LENGTH = 12

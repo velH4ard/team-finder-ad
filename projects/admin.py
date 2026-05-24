@@ -1,4 +1,4 @@
-"""Admin configurations for projects app."""
+"""Admin configuration for projects app."""
 from django.contrib import admin
 
 from projects.models import Favorite, Project

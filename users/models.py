@@ -9,6 +9,7 @@ User = get_user_model()
 
 class Profile(models.Model):
     """Represents a profile of a user."""
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
