@@ -1,5 +1,4 @@
 """Django settings for team-finder project."""
-import os
 from pathlib import Path
 
 from decouple import config

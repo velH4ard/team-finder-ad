@@ -47,7 +47,7 @@ class Project(models.Model):
 
     def get_absolute_url(self):
         """Returns the canonical URL for the project."""
-        return reverse('project-detail', kwargs={'pk': self.pk})
+        return reverse('projects:project-detail', kwargs={'pk': self.pk})
 
 
 class Favorite(models.Model):
@@ -79,3 +79,9 @@ class Favorite(models.Model):
     def __str__(self):
         """Returns string representation of favorite."""
         return f'{self.user.username} - {self.project.title}'
+
+
+Project.add_to_class('owner', property(lambda project: project.author))
+Project.add_to_class('name', property(lambda project: project.title))
+Project.add_to_class('created_at', property(lambda project: project.pub_date))
+Project.add_to_class('github_url', property(lambda project: ''))
