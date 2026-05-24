@@ -15,6 +15,9 @@ class ProfileInline(admin.StackedInline):
     verbose_name_plural = 'Профили'
 
 
+admin.site.unregister(User)
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     """Admin configuration for User model."""
