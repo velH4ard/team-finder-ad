@@ -2,12 +2,13 @@
 from django import forms
 
 from projects.models import Project
+from team_finder.constants import TITLE_MAX_LENGTH
 
 
 class ProjectForm(forms.ModelForm):
     """Form for creating and editing projects."""
 
-    name = forms.CharField(label='Название', max_length=200)
+    name = forms.CharField(label='Название', max_length=TITLE_MAX_LENGTH)
 
     class Meta:
         model = Project

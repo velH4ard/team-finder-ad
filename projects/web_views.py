@@ -2,14 +2,13 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views import View
+from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from projects.forms import ProjectForm
 from projects.models import Favorite, Project
-from team_finder.constants import STATUS_CLOSED
+from team_finder.constants import ITEMS_PER_PAGE, STATUS_CLOSED
 
 
 class ProjectListView(ListView):
@@ -18,7 +17,7 @@ class ProjectListView(ListView):
     model = Project
     template_name = 'projects/project_list.html'
     context_object_name = 'projects'
-    paginate_by = 12
+    paginate_by = ITEMS_PER_PAGE
 
     def get_queryset(self):
         """Returns projects ordered by publication date."""
@@ -40,7 +39,7 @@ class FavoriteProjectsView(LoginRequiredMixin, ListView):
 
     template_name = 'projects/favorite_projects.html'
     context_object_name = 'projects'
-    paginate_by = 12
+    paginate_by = ITEMS_PER_PAGE
 
     def get_queryset(self):
         """Returns favorite projects for current user."""
@@ -60,63 +59,43 @@ class ProjectDetailView(DetailView):
 
     model = Project
     template_name = 'projects/project-details.html'
-    context_object_name = 'project'
 
 
-class ProjectCreateView(LoginRequiredMixin, View):
+class ProjectCreateView(LoginRequiredMixin, CreateView):
     """Creates a new project."""
 
+    model = Project
+    form_class = ProjectForm
     template_name = 'projects/create-project.html'
 
-    def get(self, request):
-        """Renders empty project form."""
-        return render(request, self.template_name, {'form': ProjectForm(), 'is_edit': False})
+    def get_context_data(self, **kwargs):
+        """Adds is_edit flag for template."""
+        context = super().get_context_data(**kwargs)
+        context['is_edit'] = False
+        return context
 
-    def post(self, request):
-        """Saves a newly created project."""
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.author = request.user
-            project.save()
-            return redirect('projects:project-detail', pk=project.pk)
-        return render(request, self.template_name, {'form': form, 'is_edit': False})
+    def form_valid(self, form):
+        """Sets the current user as project author."""
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
-class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Edits an existing project."""
 
+    model = Project
+    form_class = ProjectForm
     template_name = 'projects/create-project.html'
 
     def test_func(self):
         """Allows editing only by the project author."""
-        return self.get_project().author == self.request.user
+        return self.get_object().author == self.request.user
 
-    def get_project(self):
-        """Returns the target project."""
-        return get_object_or_404(Project, pk=self.kwargs['pk'])
-
-    def get(self, request, pk):
-        """Renders project form with initial data."""
-        project = self.get_project()
-        return render(
-            request,
-            self.template_name,
-            {'form': ProjectForm(instance=project), 'is_edit': True, 'project': project},
-        )
-
-    def post(self, request, pk):
-        """Saves project changes."""
-        project = self.get_project()
-        form = ProjectForm(request.POST, instance=project)
-        if form.is_valid():
-            project = form.save()
-            return redirect('projects:project-detail', pk=project.pk)
-        return render(
-            request,
-            self.template_name,
-            {'form': form, 'is_edit': True, 'project': project},
-        )
+    def get_context_data(self, **kwargs):
+        """Adds is_edit flag for template."""
+        context = super().get_context_data(**kwargs)
+        context['is_edit'] = True
+        return context
 
 
 @login_required

@@ -1,8 +1,12 @@
 """Models for users app."""
+import io
+
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from PIL import Image, ImageDraw, ImageFont
 
 from team_finder.constants import PHONE_MAX_LENGTH
 
@@ -48,11 +52,37 @@ class Profile(models.Model):
         return f'Профиль {self.user.username}'
 
 
+def generate_avatar_image(letter):
+    """Generates a simple avatar with the given letter."""
+    size = (128, 128)
+    color = (100, 149, 237)
+    text_color = (255, 255, 255)
+
+    img = Image.new('RGB', size, color)
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+
+    bbox = draw.textbbox((0, 0), letter, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x = (size[0] - text_width) // 2
+    y = (size[1] - text_height) // 2 - 5
+
+    draw.text((x, y), letter, fill=text_color, font=font)
+
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    return ContentFile(buffer.getvalue())
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """Creates a profile for each new user."""
-    if created:
-        Profile.objects.create(user=instance)
+    profile, _ = Profile.objects.get_or_create(user=instance)
+    if created and not profile.avatar:
+        letter = (instance.first_name or instance.email[0] if instance.email else '?').upper()
+        avatar_file = generate_avatar_image(letter)
+        profile.avatar.save(f'avatar_{instance.pk}.png', avatar_file, save=True)
 
 
 def _get_profile(user):

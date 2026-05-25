@@ -2,32 +2,25 @@
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.views import View
-from django.views.generic import DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
+from team_finder.constants import ITEMS_PER_PAGE
 from users.forms import EmailAuthenticationForm, ProfileEditForm, UserRegistrationForm
+from users.models import Profile
 
 User = get_user_model()
 
 
-class RegisterView(View):
+class RegisterView(CreateView):
     """Handles user registration."""
 
+    form_class = UserRegistrationForm
     template_name = 'users/register.html'
 
-    def get(self, request):
-        """Renders registration form."""
-        return render(request, self.template_name, {'form': UserRegistrationForm()})
-
-    def post(self, request):
-        """Creates a new user when form is valid."""
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('users:login')
-        return render(request, self.template_name, {'form': form})
+    def get_success_url(self):
+        """Returns redirect target after registration."""
+        return reverse('users:login')
 
 
 class EmailLoginView(auth_views.LoginView):
@@ -49,23 +42,27 @@ class UserDetailView(DetailView):
     context_object_name = 'user'
 
 
-class EditProfileView(LoginRequiredMixin, View):
+class EditProfileView(LoginRequiredMixin, UpdateView):
     """Allows the current user to edit their profile."""
 
+    model = Profile
+    form_class = ProfileEditForm
     template_name = 'users/edit_profile.html'
 
-    def get(self, request):
-        """Renders profile edit form."""
-        form = ProfileEditForm(user=request.user)
-        return render(request, self.template_name, {'form': form, 'user': request.user})
+    def get_object(self, queryset=None):
+        """Returns or creates the current user's profile."""
+        profile, _ = Profile.objects.get_or_create(user=self.request.user)
+        return profile
 
-    def post(self, request):
-        """Updates current user profile."""
-        form = ProfileEditForm(request.POST, request.FILES, user=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect('users:user-detail', pk=request.user.pk)
-        return render(request, self.template_name, {'form': form, 'user': request.user})
+    def get_context_data(self, **kwargs):
+        """Adds current user to template context."""
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
+
+    def get_success_url(self):
+        """Returns redirect target after profile update."""
+        return reverse('users:user-detail', kwargs={'pk': self.request.user.pk})
 
 
 class UserListView(ListView):
@@ -74,7 +71,7 @@ class UserListView(ListView):
     model = User
     template_name = 'users/participants.html'
     context_object_name = 'participants'
-    paginate_by = 12
+    paginate_by = ITEMS_PER_PAGE
 
     def get_queryset(self):
         """Returns users filtered by the selected criterion."""
